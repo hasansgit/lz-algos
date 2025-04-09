@@ -40,7 +40,7 @@ public class lz78 {
         dict.put(0, "");
 
         for (Node i : a) {
-            sb.append(dict.get(i.pos) + i.next);
+            sb.append(dict.get(i.pos)).append(i.next);
             dict.put(dict.size(), dict.get(i.pos) + i.next);
         }
 
