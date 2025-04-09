@@ -1,49 +1,62 @@
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class lz78 {
-    class Node {
+    public static class Node {
         final int pos;
-        final char next;
+        final byte next;
 
-        Node(int pos, char next) {
+        Node(int pos, byte next) {
             this.pos = pos;
             this.next = next;
         }
     }
 
-    ArrayList<Node> compress(String s) {
-        ArrayList<Node> res = new ArrayList<>();
+    public List<Node> compress(byte[] bytes) {
+        List<Node> res = new ArrayList<>();
 
-        HashMap<String, Integer> dict = new HashMap<>();
+        Map<List<Byte>, Integer> dict = new HashMap<>();
+        dict.put(new ArrayList<>(), 0);
 
-        dict.put("", 0);
-        String buff = "";
-        for (int i = 0; i < s.length(); i++) {
-            if (dict.containsKey(buff + s.charAt(i))) {
-                buff += s.charAt(i);
+        List<Byte> buff = new ArrayList<>();
+
+        for (byte aByte : bytes) {
+            List<Byte> temp = new ArrayList<>(buff);
+            temp.add(aByte);
+            if (dict.containsKey(temp)) {
+                buff.add(aByte);
             } else {
-                res.add(new Node(dict.get(buff), s.charAt(i)));
-                dict.put(buff + s.charAt(i), dict.size());
-                buff = "";
+                res.add(new Node(dict.get(buff), aByte));
+                dict.put(temp, dict.size());
+                buff.clear();
             }
+        }
+
+        if (!buff.isEmpty()) {
+            byte last = buff.removeLast();
+            res.add(new Node(dict.get(buff), last));
         }
 
         return res;
     }
 
-    String decompress(ArrayList<Node> a) {
-        StringBuilder sb = new StringBuilder();
+    public byte[] decompress(List<Node> nodes) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        HashMap<Integer, String> dict = new HashMap<>();
+        Map<Integer, List<Byte>> dict = new HashMap<>();
+        dict.put(0, new ArrayList<>());
 
-        dict.put(0, "");
+        for (Node node : nodes) {
+            List<Byte> newEntry = new ArrayList<>(dict.get(node.pos));
+            newEntry.add(node.next);
 
-        for (Node i : a) {
-            sb.append(dict.get(i.pos)).append(i.next);
-            dict.put(dict.size(), dict.get(i.pos) + i.next);
+            for (byte b : newEntry) out.write(b);
+            dict.put(dict.size(), newEntry);
         }
 
-        return sb.toString();
+        return out.toByteArray();
     }
 }
